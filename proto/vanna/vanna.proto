@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package vanna;
+
+option go_package = "./proto/vanna";
+
+service VannaService {
+    rpc GenerateSQL(GenerateSQLRequest) returns (GenerateSQLResponse);
+    rpc ValidateSQL(ValidateSQLRequest) returns (ValidateSQLResponse);
+    rpc ExplainSQL(ExplainSQLRequest) returns (ExplainSQLResponse);
+    rpc Train(TrainRequest) returns (TrainResponse);
+}
+
+message GenerateSQLRequest {
+    string question = 1;
+    map<string, string> context = 2;
+}
+
+message GenerateSQLResponse {
+    string sql = 1;
+    string explanation = 2;
+}
+
+message ValidateSQLRequest {
+    string sql = 1;
+}
+
+message ValidateSQLResponse {
+    bool is_valid = 1;
+    string message = 2;
+}
+
+message ExplainSQLRequest {
+    string sql = 1;
+}
+
+message ExplainSQLResponse {
+    string explanation = 1;
+}
+
+message TrainRequest {
+    repeated string data = 1;
+}
+
+message TrainResponse {
+    bool success = 1;
+    string message = 2;
+}
