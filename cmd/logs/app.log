@@ -1,0 +1,5 @@
+{"level":"info","timestamp":"2024-12-05T19:45:54.798+1100","caller":"s3/s3.go:126","message":"S3 Configuration","bucket":"document-processors","region":"ap-southeast-2","access_key":"AKIA3FLD2GHRIOESPGFA","endpoint":""}
+{"level":"info","timestamp":"2024-12-05T19:45:55.004+1100","caller":"server/main.go:50","message":"Server starting on port 8080"}
+{"level":"info","timestamp":"2024-12-05T19:46:41.083+1100","caller":"document/document_impl.go:107","message":"Starting file processing","filename":"test.jpg","size":73717}
+{"level":"info","timestamp":"2024-12-05T19:46:41.177+1100","caller":"document/document_impl.go:189","message":"File processing task created","taskId":"4821e91d-2369-48c0-acd4-f9ed548da3bc","filename":"test.jpg"}
+{"level":"info","timestamp":"2024-12-05T19:55:55.088+1100","caller":"server/main.go:61","message":"Shutting down server..."}

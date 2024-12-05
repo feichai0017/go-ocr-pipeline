@@ -31,16 +31,16 @@ func (p *Processor) CanProcess(mimeType string) bool {
 }
 
 func (p *Processor) Process(ctx context.Context, file io.Reader) ([]models.DocumentChunk, error) {
-    // 首先将文件读入内存
+    // read all file content
     content, err := io.ReadAll(file)
     if err != nil {
         return nil, err
     }
 
-    // 创建一个bytes.Reader，它实现了io.ReaderAt接口
+    // create a bytes.Reader, it implements io.ReaderAt interface
     reader := bytes.NewReader(content)
 
-    // 使用正确的参数调用pdf.NewReader
+    // use correct parameters to call pdf.NewReader
     pdfReader, err := pdf.NewReader(reader, reader.Size())
     if err != nil {
         return nil, err
@@ -49,23 +49,23 @@ func (p *Processor) Process(ctx context.Context, file io.Reader) ([]models.Docum
     numPages := pdfReader.NumPage()
     chunks := make([]models.DocumentChunk, 0, numPages)
 
-    // 计算文件哈希
+    // calculate file hash
     hash := sha256.Sum256(content)
     hashStr := hex.EncodeToString(hash[:])
 
-    // 创建错误组以并行处理页面
+    // create error group to process pages in parallel
     g, ctx := errgroup.WithContext(ctx)
     chunkChan := make(chan models.DocumentChunk, numPages)
 
-    // 设置最大并发数
+    // set max concurrency
     maxWorkers := 4
     sem := make(chan struct{}, maxWorkers)
     
-    // 并行处理每一页
+    // process each page in parallel
     for i := 1; i <= numPages; i++ {
         pageNum := i
         g.Go(func() error {
-            // 使用信号量控制并发
+            // use semaphore to control concurrency
             select {
             case sem <- struct{}{}:
                 defer func() { <-sem }()
@@ -101,13 +101,13 @@ func (p *Processor) Process(ctx context.Context, file io.Reader) ([]models.Docum
         })
     }
 
-    // 等待所有页面处理完成
+    // wait for all pages to be processed
     go func() {
         g.Wait()
         close(chunkChan)
     }()
 
-    // 收集结果
+    // collect results
     for chunk := range chunkChan {
         chunks = append(chunks, chunk)
     }
@@ -125,24 +125,24 @@ func (p *Processor) ExtractMetadata(ctx context.Context, file io.Reader) (models
         return models.DocumentMetadata{}, err
     }
 
-    // 创建一个bytes.Reader
+    // create a bytes.Reader
     reader := bytes.NewReader(content)
 
-    // 使用正确的参数调用pdf.NewReader
+    // use correct parameters to call pdf.NewReader
     pdfReader, err := pdf.NewReader(reader, reader.Size())
     if err != nil {
         return models.DocumentMetadata{}, err
     }
 
-    // 计算文件哈希
+    // calculate file hash
     hash := sha256.Sum256(content)
     hashString := hex.EncodeToString(hash[:])
 
-    // 初始化基本元数据
+    // initialize basic metadata
     metadata := models.DocumentMetadata{
         ID:        hashString[:8],
-        Title:     "", // 将在后面尝试填充
-        Author:    "", // 将在后面尝试填充
+        Title:     "",
+        Author:    "", 
         FileType:  models.PDF,
         FileSize:  int64(len(content)),
         MimeType:  "application/pdf",
@@ -151,18 +151,18 @@ func (p *Processor) ExtractMetadata(ctx context.Context, file io.Reader) (models
         Hash:      hashString,
     }
 
-    // 尝试从PDF文档中获取更多信息
+    // try to get more information from PDF document
     trailer := pdfReader.Trailer()
     if !trailer.IsNull() {
         info := trailer.Key("Info")
         if !info.IsNull() {
-            // 尝试获取标题
+            // try to get title
             title := info.Key("Title")
             if !title.IsNull() {
                 metadata.Title = title.String()
             }
 
-            // 尝试获取作者
+            // try to get author
             author := info.Key("Author")
             if !author.IsNull() {
                 metadata.Author = author.String()
@@ -185,12 +185,12 @@ func (p *Processor) postProcessChunks(chunks []models.DocumentChunk) ([]models.D
 }
 
 func (p *Processor) cleanText(text string) string {
-    // 实现文本清理逻辑
+    // implement text cleaning logic
     return text
 }
 
-// Close 实现 document.Processor 接口的 Close 方法
+// Close implements document.Processor interface's Close method
 func (p *Processor) Close() error {
-    // PDF处理器没有需要清理的资源
+    // PDF processor has no resources to clean
     return nil
 }
